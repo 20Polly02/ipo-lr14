@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск специальностей</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-gray: #f5f7fa;
+            --dark-gray: #7f8c8d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--secondary-color);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: var(--light-gray);
+        }
+        
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .search-form {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .search-button {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .search-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .result-placeholder {
+            text-align: center;
+            color: var(--dark-gray);
+            font-style: italic;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .specialties-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .specialty-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+            background-color: #f8f9fa;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .specialty-field {
+            margin-bottom: 8px;
+        }
+        
+        .field-label {
+            font-weight: bold;
+            color: var(--primary-color);
+            display: inline-block;
+            width: 150px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .back-link:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--dark-gray);
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Поиск специальности</h1>
+    
+    <form method="GET" action="{% url 'speciality_found' %}" class="search-form">
+        <div class="search-container">
+            <input type="text" name="c" placeholder="Введите код специальности..." class="search-input">
+            <button type="submit" class="search-button">Искать</button>
+        </div>
+        <div id="result" class="result-placeholder">Здесь будет результат...</div>
+    </form>
+    
+    <div class="specialties-list">
+        <h2>Доступные специальности</h2>
+        <ul style="list-style-type: none; padding: 0;">
+            {% for item in specialities %} 
+                <li class="specialty-item">
+                    <div class="specialty-field">
+                        <span class="field-label">Название:</span> {{ item.title }}
+                    </div>
+                    <div class="specialty-field">
+                        <span class="field-label">ID:</span> {{ item.pk }}
+                    </div>
+                    <div class="specialty-field">
+                        <span class="field-label">Код специальности:</span> {{ item.code }}
+                    </div>
+                    <div class="specialty-field">
+                        <span class="field-label">Тип обучения:</span> {{ item.c_type }}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div style="text-align: center;">
+        <a href="http://127.0.0.1:8000" class="back-link">← Вернуться на главную</a>
+    </div>
+    
+    <div class="footer">
+        <p>Система поиска специальностей © 2024</p>
+    </div>
+</body>
+</html>
