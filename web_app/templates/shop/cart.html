@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина покупок</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px 0;
+        }
+
+        .messages li {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .cart-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: rgba(74, 111, 165, 0.05);
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .quantity-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="number"] {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .update-btn {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .update-btn:hover {
+            background-color: #3da8d8;
+        }
+
+        .remove-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+
+        tfoot td {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+
+        .total-row td {
+            padding-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 40px 0;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .action-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .quantity-form {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ваша корзина</h1>
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li>{{ message }}</li> 
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="cart-container">
+            {% if cart_items %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Товар</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="product-name">{{ item.product.name }}</td>
+                        <td>{{ item.product.price }} ₽</td>
+                        <td>
+                            <form class="quantity-form" method="post" action="{% url 'update_cart' item.id %}">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.quantity_in_stock }}">
+                                <button type="submit" class="update-btn">Обновить</button>
+                            </form>
+                        </td>
+                        <td>{{ item.element_cost }} ₽</td>
+                        <td>
+                            <form method="post" action="{% url 'remove_from_cart' item.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-btn">Удалить</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="4">Общая сумма:</td>
+                        <td colspan="2">{{ total }} ₽</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="action-links">
+                <a href="http://127.0.0.1:8000/catalog" class="btn btn-secondary">Продолжить покупки</a>
+            </div>
+            {% else %}
+            <div class="empty-cart">
+                <p>Ваша корзина пуста</p>
+                <a href="http://127.0.0.1:8000/catalog" class="btn btn-primary">Вернуться в магазин</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

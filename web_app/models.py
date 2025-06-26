@@ -20,7 +20,7 @@ class Category(models.Model):
 class Product(models.Model):
     name=models.CharField(verbose_name='название', max_length=200)
     description = models.TextField(verbose_name='описание', blank=True, null=True)
-    photo_product = models.ImageField(verbose_name='фото', blank=True, null=True,upload_to="photo/")
+    photo_product = models.ImageField(verbose_name='фото', blank=True, null=True,upload_to="media/")
     price= models.DecimalField( verbose_name='цена',max_digits=10,decimal_places=2,validators=[MinValueValidator(0)])
     quantity_in_stock = models.IntegerField(verbose_name='количество_на_складе',validators=[MinValueValidator(0)])
     category = models.ForeignKey('Category',on_delete=models.CASCADE,verbose_name='категория')
@@ -80,4 +80,6 @@ class Basket_elem(models.Model):
             raise ValidationError(
                 "Недостаточно товара на складе. Доступно: {self.product.quantity_in_stock}"
             )
+
+
 # Create your models here.
