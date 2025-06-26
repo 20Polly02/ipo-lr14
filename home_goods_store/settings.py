@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'web_app',
 ]
+AUTH_USER_MODEL = 'web_app.CustomUser' # новое
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
