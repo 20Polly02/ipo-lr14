@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+</head>
+<body>
+{% block content %}
+
+    <h2>Оформление заказа</h2>
+        <form method="post">
+            {% csrf_token %}
+            <h3>Ваш заказ</h3>
+            <ul>
+                {% for item in cart_items %}
+                    <li>{{ item.product.name }} - {{ item.quantity }} шт. × {{ item.product.price }} руб.</li>
+                {% endfor %}
+            </ul>
+            <p>Итого: {{ total_price }} руб.</p>
+            <button type="submit">Оформить заказ</button>
+        </form>
+{% endblock %}
+</body>
+</html>

@@ -81,5 +81,25 @@ class Basket_elem(models.Model):
                 "Недостаточно товара на складе. Доступно: {self.product.quantity_in_stock}"
             )
 
+class Order(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE,verbose_name="Пользователь")
+    created = models.DateTimeField(auto_now_add=True,verbose_name="Дата создания")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Общая стоимость")
+
+    def __str__(self):
+        return f"Заказ пользователя <{self.user.username}>"
+    class Meta:
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE,verbose_name="Заказ")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Товар")
+    price = models.DecimalField(max_digits=10, decimal_places=2,verbose_name="Цена")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="Количество")
+
+    class Meta:
+        verbose_name = "Элемент заказа"
+        verbose_name_plural = "Элементы заказа"
 
 # Create your models here.

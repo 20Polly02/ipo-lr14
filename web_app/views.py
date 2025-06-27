@@ -5,7 +5,15 @@ from django.contrib.auth.decorators import login_required # новое
 from django.views.decorators.http import require_POST #новое
 from django.contrib.auth import login, authenticate #новое
 from .forms import UserRegistrationForm, LoginForm #новое
-from .models import Product,Category,Maker,Basket,Basket_elem
+from django.urls import reverse
+from openpyxl import Workbook
+from django.http import HttpResponse
+from io import BytesIO
+from django.core.mail import send_mail
+from django.conf import settings
+from django.core.mail import EmailMessage
+from openpyxl.styles import Font
+from .models import Product,Category,Maker,Basket,Basket_elem,Order,OrderItem
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from .forms import Filter
@@ -192,4 +200,116 @@ def user_login(request):
     else:
         form = LoginForm()
     return render(request, 'login_user.html', {'form': form})
+
+@login_required
+
+def checkout(request):
+    try:
+        # Получаем корзину пользователя
+        cart = Basket.objects.get(user=request.user)
+        cart_items = Basket_elem.objects.filter(basket=cart)
+        
+        # Проверяем, что корзина не пуста
+        if not cart_items.exists():
+            return redirect('cart_view')
+        
+        # Рассчитываем общую сумму
+        total_price = sum(item.product.price * item.quantity for item in cart_items)
+        
+        if request.method == 'POST':
+  
+                # Создаем заказ
+                order = Order.objects.create(
+                    user=request.user,
+                    total_price=total_price,
+
+                )
+                
+                OrderItem.objects.bulk_create([
+                    OrderItem(
+                        order=order,
+                        product=item.product,
+                        quantity=item.quantity,
+                        price=item.product.price
+                    ) for item in cart_items
+                ])
+                
+                # Генерируем Excel-чек
+                excel_file = generate_excel_receipt(order)
+                
+                # Отправляем email с чеком
+                send_mail(request.user.email, order, excel_file, total_price)
+                
+                # Очищаем корзину
+                cart_items.delete()
+                
+                messages.success(request, 'Заказ успешно оформлен! Чек отправлен на вашу почту.')
+                return redirect('cart_user')
+        
+        return render(request, 'shop/checkout.html', {
+            'cart_items': cart_items,
+            'total_price': total_price
+        })
+        
+    except Basket.DoesNotExist:
+        messages.warning(request, "Корзина не найдена!")
+        return redirect('cart_user')
+
+def generate_excel_receipt(order):
+    """Генерирует Excel-чек и возвращает BytesIO объект"""
+    wb = Workbook() 
+    ws = wb.active 
+    ws.title = "Чек заказа" 
+    
+   
+    bold_font = Font(bold=True) 
+    
+    headers = ["№", "Товар", "Количество", "Цена", "Сумма"] 
+    ws.append(headers) 
+    for cell in ws[1]:
+        cell.font = bold_font 
+
+    for idx, item in enumerate(order.items.all(), start=1):
+      
+        ws.append([
+            idx,
+            item.product.name,
+            item.quantity,
+            item.price,
+            item.price * item.quantity
+        ])
+    
+    ws.append(["", "", "", "Итого:", order.total_price])
+    for cell in ws[ws.max_row]:
+        cell.font = bold_font
+    buffer = BytesIO() 
+    wb.save(buffer) 
+    buffer.seek(0)
+
+def send_mail(email, order, excel_file, total_price):
+
+    email_msg = EmailMessage(
+        subject=f'Чек заказа №{order.id} от {order.created.strftime("%d.%m.%Y")}', 
+        body=f'''
+        Благодарим за ваш заказ!
+        
+        Номер заказа: {order.id}
+        Дата: {order.created.strftime("%d.%m.%Y %H:%M")}
+        Сумма заказа: {total_price} руб.
+        
+        Детали заказа в приложенном файле.
+        ''',
+        from_email=settings.DEFAULT_FROM_EMAIL, 
+        to=[email],
+    )
+    
+
+    email_msg.attach(
+        filename=f'order_{order.id}_receipt.xlsx', 
+        content=excel_file.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+       
+    )
+    
+    email_msg.send()
 # Create your views here.
