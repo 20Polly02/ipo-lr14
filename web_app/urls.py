@@ -1,5 +1,25 @@
-from django.urls import path
+from django.urls import path, include
 from .views import home_page, about_autor, home_goods_store, speciality, speciality_id, speciality_found,product_list,product_detail,cart_user,add_product_cart,update_cart,remove_from_cart,user_login,register,checkout
+from rest_framework.routers import DefaultRouter
+from .views import (
+    ProductViewSet,
+    CategoryViewSet,
+    MakerViewSet,
+    BasketViewSet,
+    Basket_elementViewSet,
+    OrderViewSet,
+    OrderItemViewSet
+)
+router = DefaultRouter()
+
+
+router.register(r'products', ProductViewSet)
+router.register(r'categories', CategoryViewSet)
+router.register(r'makers', MakerViewSet)
+router.register(r'baskets', BasketViewSet)
+router.register(r'basket-elements', Basket_elementViewSet) 
+router.register(r'orders', OrderViewSet)
+router.register(r'order-items', OrderItemViewSet) 
 
 urlpatterns = [
     path('', home_page, name='home_page'),
@@ -18,5 +38,8 @@ urlpatterns = [
 
     path('register/', register, name='register'),
     path('login/', user_login, name='login_user'),
-     path('checkout/', checkout, name='checkout'),
+    path('checkout/', checkout, name='checkout'),
+    path('api', include(router.urls)),
+    
+     
 ]

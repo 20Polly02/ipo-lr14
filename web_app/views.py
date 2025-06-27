@@ -17,6 +17,9 @@ from .models import Product,Category,Maker,Basket,Basket_elem,Order,OrderItem
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from .forms import Filter
+
+from .serializers import ProductModelSerializer,CategoryModelSerializer,MakerModelSerializer,BasketModelSerializer,Basket_elementModelSerializer,OrderModelSerializer,OrderItemModelSerializer
+from rest_framework import viewsets
 def home_page(request):
     return render(request,'home_page.html')
 
@@ -205,20 +208,17 @@ def user_login(request):
 
 def checkout(request):
     try:
-        # Получаем корзину пользователя
+      
         cart = Basket.objects.get(user=request.user)
         cart_items = Basket_elem.objects.filter(basket=cart)
         
-        # Проверяем, что корзина не пуста
         if not cart_items.exists():
             return redirect('cart_view')
         
-        # Рассчитываем общую сумму
         total_price = sum(item.product.price * item.quantity for item in cart_items)
         
         if request.method == 'POST':
   
-                # Создаем заказ
                 order = Order.objects.create(
                     user=request.user,
                     total_price=total_price,
@@ -240,7 +240,6 @@ def checkout(request):
                 # Отправляем email с чеком
                 send_mail(request.user.email, order, excel_file, total_price)
                 
-                # Очищаем корзину
                 cart_items.delete()
                 
                 messages.success(request, 'Заказ успешно оформлен! Чек отправлен на вашу почту.')
@@ -312,4 +311,32 @@ def send_mail(email, order, excel_file, total_price):
     )
     
     email_msg.send()
+
+class ProductViewSet(viewsets.ModelViewSet):
+    queryset = Product.objects.all() 
+    serializer_class = ProductModelSerializer  
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategoryModelSerializer
+
+class MakerViewSet(viewsets.ModelViewSet):
+    queryset = Maker.objects.all() 
+    serializer_class = MakerModelSerializer 
+
+class BasketViewSet(viewsets.ModelViewSet):
+    queryset = Basket.objects.all()
+    serializer_class = BasketModelSerializer
+
+class Basket_elementViewSet(viewsets.ModelViewSet):
+    queryset = Basket_elem.objects.all() 
+    serializer_class = Basket_elementModelSerializer  
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderModelSerializer
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemModelSerializer
 # Create your views here.
